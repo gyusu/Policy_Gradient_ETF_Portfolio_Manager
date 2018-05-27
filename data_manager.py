@@ -8,7 +8,7 @@ asset_name_dict = pd.read_csv('asset_name.csv', index_col=0)
 asset_name_dict = asset_name_dict.to_dict()['name']
 
 class Data_Manager:
-    def __init__(self, db_path, min_date=20180103, max_date=20180320, train_test_split=0.8):
+    def __init__(self, db_path, min_date=20180101, max_date=20180320, train_test_split=1.0):
         self._db_path = db_path
         self.asset_list = self.db_asset_list(min_date=min_date)
         self.min_date = min_date
@@ -45,15 +45,12 @@ class Data_Manager:
         with sqlite3.connect(self._db_path) as con:
             cur = con.cursor()
             for asset in self.asset_list:
-                print('loading {} from db...'.format(asset), end=' ')
                 cur.execute("SELECT * FROM {} WHERE date >= {}".format(asset, self.min_date))
                 df = pd.DataFrame(cur.fetchall(), columns=(
                     'date', 'open', 'high', 'low', 'close', 'volume'))
 
                 df.index = pd.to_datetime(df.date, format='%Y%m%d')
                 del df['date']
-                # df = df.reindex(self.datetime_index)
-                # self._fill_na(df)
 
                 df.name = asset
                 df_list.append(df)
