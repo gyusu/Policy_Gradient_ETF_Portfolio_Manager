@@ -2,18 +2,20 @@ import numpy as np
 
 class Environment:
 
-    def __init__(self, chart_data, init_money=10000000):
-        self.chart_data = chart_data
+    def __init__(self, chart_df, feature_df, window_size=30):
+        self.chart_df = chart_df
+        self.feature_df = feature_df
         self.init_money = 10000000
-        self.idx = -1
+        self.window_size = window_size
+        self.idx = window_size - 1
 
         self.prev_pv = self.init_money
         self.prev_action = None
         self.prev_observation = None
 
     def reset(self):
-        self.idx = 0
-        observation = self.chart_data.iloc[self.idx]
+        self.idx = self.window_size - 1
+        observation = self.feature_df.iloc[0:self.idx + 1]
         self.curr_pv = self.init_money
 
         return observation
@@ -31,13 +33,14 @@ class Environment:
 
         done = False
         self.idx += 1
-        observation = self.chart_data.iloc[self.idx]
+
         action = self._validate_action(action)
         reward = self.calc_PV(action)
-
         self.prev_action = action
 
-        if self.idx + 1 >= len(self.chart_data):
+        observation = self.feature_df.iloc[self.idx+1-self.window_size : self.idx+1]
+
+        if self.idx + 1 >= len(self.feature_df):
             done = True
 
         return observation, reward, done
@@ -49,9 +52,9 @@ class Environment:
         :return: 포트폴리오 밸류를 리턴한다. 단위 : 원화
         """
 
-        price0_arr = self.chart_data.iloc[self.idx-1][:, 'close'].values
-        price_arr = self.chart_data.iloc[self.idx][:, 'close'].values
-
+        price0_arr = self.feature_df.iloc[self.idx-1][:, 'close'].values
+        price_arr = self.feature_df.iloc[self.idx][:, 'close'].values
+        # print(price_arr)
         pv = sum(price_arr / price0_arr * action * self.prev_pv)
 
         # 다음 step에 사용하기 위해 self.prev_pv에 저장
@@ -64,7 +67,7 @@ class Environment:
         """
         :return: random 한 포트폴리오 벡터를 반환한다. random action으로 볼 수 있다.
         """
-        n_asset = len(self.chart_data.columns.levels[0])
+        n_asset = len(self.feature_df.columns.levels[0])
         action = np.random.rand(n_asset)
         action /= sum(action)
         return action
@@ -77,7 +80,11 @@ class Environment:
         :return:
         """
         epsilon = 1e-6
-        if 1 - epsilon <= sum(action) <= 1 + epsilon:
-            return action
-        else:
+        if sum(action) < 1 - epsilon or sum(action) > 1 + epsilon:
+            print("Portfolio Vector(action)의 합이 1이 아닙니다.")
+            print("자동으로 비율을 조절합니다.")
+            print("before adj:", action)
             action /= sum(action)
+            print("after  adj:", action)
+
+        return action

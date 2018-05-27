@@ -38,7 +38,6 @@ class Data_Manager:
             return asset_list
 
 
-
     def load_db(self):
 
         df_list = []
@@ -70,3 +69,38 @@ class Data_Manager:
 
         return df
 
+    def generate_feature_df(self, chart_df):
+        feature_df = chart_df
+
+        for asset in self.asset_list:
+
+            # open_lastclose_ratio : (open - close(-1))/close(-1)
+            feature_df.loc[:, (asset, 'open_lastclose_ratio')] = np.zeros(len(feature_df))
+            feature_df.ix[1:, (asset, 'open_lastclose_ratio')] = \
+                (feature_df.ix[1:, (asset, 'open')].values - feature_df.ix[:-1, (asset, 'close')].values) / \
+                feature_df.ix[:-1, (asset, 'close')].values
+
+            # high_close_ratio : (high - close) / close
+            feature_df.loc[:, (asset, 'high_close_ratio')] = \
+                (feature_df.loc[:, (asset, 'high')].values - feature_df.loc[:, (asset, 'close')].values) / \
+                feature_df.loc[:, (asset, 'close')].values
+
+            # high_close_ratio : (low - close) / close
+            feature_df.loc[:, (asset, 'low_close_ratio')] = \
+                (feature_df.loc[:, (asset, 'low')].values - feature_df.loc[:, (asset, 'close')].values) / \
+                feature_df.loc[:, (asset, 'close')].values
+
+            # (close - close(-1)) / (close(-1)
+            feature_df.loc[:, (asset, 'close_lastclose_ratio')] = np.zeros(len(feature_df))
+            feature_df.ix[1:, (asset, 'close_lastclose_ratio')] = \
+                (feature_df.ix[1:, (asset, 'close')].values - feature_df.ix[:-1, (asset, 'close')].values) / \
+                feature_df.ix[:-1, (asset, 'close')].values
+
+            # (volume - volume(-1)) / (volume(-1))
+            feature_df.loc[:, (asset, 'volume_lastvolume_ratio')] = np.zeros(len(feature_df))
+            feature_df.loc[1:, (asset, 'volume_lastvolume_ratio')] = \
+                (feature_df.ix[1:, (asset, 'volume')].values - feature_df.ix[:-1, (asset, 'volume')].values) / \
+                feature_df.ix[:-1, (asset, 'volume')]\
+                    .replace(to_replace=0, method='ffill').replace(to_replace=0, method='bfill').values
+
+        return feature_df.sort_index(axis=1)
