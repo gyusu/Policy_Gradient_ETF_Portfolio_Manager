@@ -1,22 +1,31 @@
 import numpy as np
+import pandas as pd
 
 class Environment:
 
-    def __init__(self, chart_df, feature_df, window_size=30):
-        self.chart_df = chart_df
+    def __init__(self, feature_df, window_size=30):
         self.feature_df = feature_df
+        self.feature_columns = list(
+            set(feature_df.columns.levels[1]) - {'open', 'high', 'low', 'close', 'volume'})
+        self.asset_list = feature_df.columns.levels[0].tolist()
+
         self.init_money = 10000000
         self.window_size = window_size
+
         self.idx = window_size - 1
 
         self.prev_pv = self.init_money
         self.prev_action = None
         self.prev_observation = None
 
+        self.obs_shape = [1, len(self.asset_list), window_size, len(self.feature_columns)]
+
     def reset(self):
         self.idx = self.window_size - 1
         observation = self.feature_df.iloc[0:self.idx + 1]
         self.curr_pv = self.init_money
+
+        observation= self._observation_fmt(observation)
 
         return observation
 
@@ -39,6 +48,7 @@ class Environment:
         self.prev_action = action
 
         observation = self.feature_df.iloc[self.idx+1-self.window_size : self.idx+1]
+        observation = self._observation_fmt(observation)
 
         if self.idx + 1 >= len(self.feature_df):
             done = True
@@ -51,10 +61,9 @@ class Environment:
         :param observation:
         :return: 포트폴리오 밸류를 리턴한다. 단위 : 원화
         """
-
         price0_arr = self.feature_df.iloc[self.idx-1][:, 'close'].values
         price_arr = self.feature_df.iloc[self.idx][:, 'close'].values
-        # print(price_arr)
+
         pv = sum(price_arr / price0_arr * action * self.prev_pv)
 
         # 다음 step에 사용하기 위해 self.prev_pv에 저장
@@ -88,3 +97,17 @@ class Environment:
             print("after  adj:", action)
 
         return action
+
+    def _observation_fmt(self, observation):
+        """
+        multiindex pandas dataframe 형식의 observation 을
+        [1, nb_asset, window_size, nb_feature]형식의 ndarray 로 만든다.
+        e.g.[1, 15, 30, 5]
+        """
+        idx = pd.IndexSlice
+        ndarray_obv = observation.loc[:, idx[:, self.feature_columns]].values
+
+        ndarray_obv = ndarray_obv.reshape([1, self.window_size, len(self.asset_list), len(self.feature_columns)])
+        ndarray_obv = ndarray_obv.transpose([0, 2, 1, 3])
+
+        return ndarray_obv
