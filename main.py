@@ -1,4 +1,5 @@
 import tensorflow as tf
+import pandas as pd
 
 from data_manager import Data_Manager
 from environment import Environment
@@ -6,29 +7,26 @@ from agent import Agent
 import simulator
 import visualizer
 
-
-# 학습용 data
-train_dm = Data_Manager('./gaps.db', min_date=20170101, max_date=20171231)
-train_df = train_dm.load_db()
-train_feature_df = train_dm.generate_feature_df(train_df)
-visualizer.plot_df(train_df)
-print("학습 데이터의 asset 개수 : ", len(train_df.columns.levels[0]))
-
-# 테스트용 data
-test_dm = Data_Manager('./gaps.db', min_date=20180101, max_date=99999999)
-test_df = test_dm.load_db()
-test_feature_df = test_dm.generate_feature_df(test_df)
-visualizer.plot_df(test_df)
-print("테스트 데이터의 asset 개수 : ", len(test_df.columns.levels[0]))
-
-
+window_size = 30
 batch_size = 30
 episode = 100
 learning_rate = 0.0005
+
+# 학습용 data
+dm = Data_Manager('./gaps.db', train_test_split=0.8)
+df = dm.load_db()
+train_df, test_df = dm.generate_feature_df(df)
+
+# window_size 만큼 test_df 상단 row에 복사
+test_df = pd.concat([train_df.iloc[-window_size:], test_df])
+visualizer.plot_df(train_df)
+visualizer.plot_df(test_df)
+print("학습 데이터의 asset 개수 : ", len(train_df.columns.levels[0]))
+
 with tf.Session() as sess:
     # train, test env 생성
-    train_env = Environment(train_feature_df)
-    test_env = Environment(test_feature_df)
+    train_env = Environment(train_df)
+    test_env = Environment(test_df)
 
     # agent 생성. 이때 train_env.obs_shape 는 test_env.obs_shape 와 같아야 한다.
     pg_agent = Agent(sess, train_env.obs_shape, lr=learning_rate)

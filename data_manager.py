@@ -8,12 +8,11 @@ asset_name_dict = pd.read_csv('asset_name.csv', index_col=0)
 asset_name_dict = asset_name_dict.to_dict()['name']
 
 class Data_Manager:
-    def __init__(self, db_path, min_date=20180101, max_date=20180320, train_test_split=1.0):
+    def __init__(self, db_path, min_date=20160401, max_date=20180525, train_test_split=1.0):
         self._db_path = db_path
         self.asset_list = self.db_asset_list(min_date=min_date)
         self.min_date = min_date
         self.max_date = max_date
-        # self.datetime_index = self._gen_time_index(min_date, max_date)
         self.train_test_split = train_test_split
 
     def db_asset_list(self, min_date=0):
@@ -38,7 +37,6 @@ class Data_Manager:
 
             return asset_list
 
-
     def load_db(self):
 
         df_list = []
@@ -58,16 +56,6 @@ class Data_Manager:
 
             # concatenate all df to one df with 2-level index
             df = pd.concat(df_list, axis=1, keys=[df.name for df in df_list], names=['Asset', 'Feature'])
-
-            if self.train_test_split != 1.0:
-                split_date = df.index[int(len(df.index) * self.train_test_split)]
-                split_date = dt.datetime(split_date.year, split_date.month, split_date.day)
-            else:
-                split_date = df.index[int(len(df.index) * self.train_test_split) - 1]
-                split_date = dt.datetime(split_date.year, split_date.month, split_date.day)
-
-            df_train = df[df.index <= split_date]
-            df_test = df[df.index > split_date]
 
         return df
 
@@ -105,4 +93,16 @@ class Data_Manager:
                 feature_df.ix[:-1, (asset, 'volume')]\
                     .replace(to_replace=0, method='ffill').replace(to_replace=0, method='bfill').values
 
-        return feature_df.sort_index(axis=1)
+        df = feature_df.sort_index(axis=1)
+
+        if self.train_test_split != 1.0:
+            split_date = df.index[int(len(df.index) * self.train_test_split)]
+            split_date = dt.datetime(split_date.year, split_date.month, split_date.day)
+        else:
+            split_date = df.index[int(len(df.index) * self.train_test_split) - 1]
+            split_date = dt.datetime(split_date.year, split_date.month, split_date.day)
+
+        df_train = df[df.index <= split_date]
+        df_test = df[df.index > split_date]
+
+        return df_train, df_test
