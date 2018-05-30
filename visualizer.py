@@ -15,3 +15,10 @@ def plot_df(df):
                  label=asset_name_dict[asset_code])
         plt.legend()
     plt.show()
+
+def plot_reward(step, rewards):
+    fig = plt.figure()
+    plt.title("{} step".format(step))
+    plt.plot(rewards)
+    plt.savefig('./result/step{}.png'.format(step))
+    plt.close(fig)

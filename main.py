@@ -44,4 +44,5 @@ with tf.Session() as sess:
             idx_to = idx_from + batch_size
             pg_agent.train_step(obs[idx_from:idx_to+1], fps[idx_from:idx_to+1])
 
-        simulator.policy_simulator(test_env, pg_agent)
+        _, test_actions, test_rewards, _ = simulator.policy_simulator(test_env, pg_agent)
+        visualizer.plot_reward(i, test_rewards)
