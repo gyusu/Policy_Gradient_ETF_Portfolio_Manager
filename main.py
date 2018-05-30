@@ -1,89 +1,49 @@
-from data_manager import Data_Manager
-from environment import Environment
-import visualizer
-import pandas as pd
-from agent import Agent
 import tensorflow as tf
 
+from data_manager import Data_Manager
+from environment import Environment
+from agent import Agent
+import simulator
+import visualizer
+
+
 # 학습용 data
-dm = Data_Manager('./gaps.db', min_date=20170101, max_date=20171231)
-df = dm.load_db()
-feature_df = dm.generate_feature_df(df)
-visualizer.plot_df(df)
-print("asset 개수 : ", len(df.columns.levels[0]))
+train_dm = Data_Manager('./gaps.db', min_date=20170101, max_date=20171231)
+train_df = train_dm.load_db()
+train_feature_df = train_dm.generate_feature_df(train_df)
+visualizer.plot_df(train_df)
+print("학습 데이터의 asset 개수 : ", len(train_df.columns.levels[0]))
 
 # 테스트용 data
-dm_test = Data_Manager('./gaps.db', min_date=20180101, max_date=99999999)
-df_test = dm_test.load_db()
-feature_df_test = dm_test.generate_feature_df(df_test)
-visualizer.plot_df(df_test)
+test_dm = Data_Manager('./gaps.db', min_date=20180101, max_date=99999999)
+test_df = test_dm.load_db()
+test_feature_df = test_dm.generate_feature_df(test_df)
+visualizer.plot_df(test_df)
+print("테스트 데이터의 asset 개수 : ", len(test_df.columns.levels[0]))
 
-def policy_rollout(env, agent):
-    """Run one episode."""
-    obs, acts, rews, fps = [], [], [], []
-
-
-    done = False
-    observation = env.reset()
-    while not done:
-        obs.append(observation[0])
-        action = pg_agent.decide_action(observation)
-        observation, reward, done, future_price = env.step(action[0])
-
-        acts.append(action[0])
-        rews.append(reward)
-        fps.append(future_price)
-
-    return obs, acts, rews, fps
-
-def policy_test(env, agent):
-    # 테스트!!!!!
-    print("Test Start!!!!!")
-
-    observation = env.reset()
-    done = False
-    acts, rews = [], []
-    i = 1
-    while not done:
-        action = pg_agent.decide_action(observation)
-        observation, reward, done, future_price = env.step(action[0])
-        print("Day {} Portfolio Value : {}".format(i, reward))
-        acts.append(action[0])
-        rews.append(reward)
-        i += 1
-
-def policy_train_debug(env, agent):
-    # 학습 데이터로 테스트!!!!!
-    print("Train-Test Start!!!!!")
-
-    observation = env.reset()
-    done = False
-    acts, rews = [], []
-    i = 1
-    while not done:
-        action = pg_agent.decide_action(observation)
-        observation, reward, done, future_price = env.step(action[0])
-        print("Day {} Portfolio Value : {}".format(i, reward))
-        acts.append(action[0])
-        rews.append(reward)
-        i += 1
 
 batch_size = 30
 episode = 100
-
+learning_rate = 0.0005
 with tf.Session() as sess:
-    env = Environment(feature_df)
-    env_test = Environment(feature_df_test)
-    pg_agent = Agent(env, sess)
+    # train, test env 생성
+    train_env = Environment(train_feature_df)
+    test_env = Environment(test_feature_df)
+
+    # agent 생성. 이때 train_env.obs_shape 는 test_env.obs_shape 와 같아야 한다.
+    pg_agent = Agent(sess, train_env.obs_shape, lr=learning_rate)
 
     sess.run(tf.global_variables_initializer())
 
-    # 학습!!!!!!
+    # 학습
     print("Train Start!!!!!")
     for i in range(episode):
         print("train episode {}/{}".format(i+1, episode))
-        obs, acts, rews, fps = policy_rollout(env, pg_agent)
-        pg_agent.train_step(obs, fps)
+        obs, acts, rews, fps = simulator.policy_simulator(train_env, pg_agent)
 
-        policy_train_debug(env, pg_agent)
-        policy_test(env_test, pg_agent)
+        for j in range(int(len(obs)/batch_size)):
+            idx_from = j * batch_size
+            idx_to = idx_from + batch_size
+            pg_agent.train_step(obs[idx_from:idx_to+1], fps[idx_from:idx_to+1])
+
+        simulator.policy_simulator(test_env, pg_agent)
