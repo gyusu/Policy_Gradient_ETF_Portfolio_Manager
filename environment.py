@@ -23,7 +23,7 @@ class Environment:
     def reset(self):
         self.idx = self.window_size - 1
         observation = self.feature_df.iloc[0:self.idx + 1]
-        self.curr_pv = self.init_money
+        self.prev_pv = self.init_money
 
         observation= self._observation_fmt(observation)
 
@@ -50,10 +50,13 @@ class Environment:
         observation = self.feature_df.iloc[self.idx+1-self.window_size : self.idx+1]
         observation = self._observation_fmt(observation)
 
-        if self.idx + 1 >= len(self.feature_df):
+        future_price = self.feature_df.iloc[self.idx: self.idx+2]
+        future_price = self._future_price_fmt(future_price)
+
+        if self.idx + 2 >= len(self.feature_df):
             done = True
 
-        return observation, reward, done
+        return observation, reward, done, future_price
 
     def calc_PV(self, action):
         """
@@ -111,3 +114,10 @@ class Environment:
         ndarray_obv = ndarray_obv.transpose([0, 2, 1, 3])
 
         return ndarray_obv
+
+    def _future_price_fmt(self, future_obv):
+        idx = pd.IndexSlice
+
+        ndarray_fp = future_obv.ix[1, idx[:, 'close']] / future_obv.ix[0, idx[:, 'close']]
+        ndarray_fp = ndarray_fp.values
+        return ndarray_fp

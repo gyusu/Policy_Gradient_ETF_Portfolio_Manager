@@ -12,6 +12,7 @@ class Data_Manager:
         self._db_path = db_path
         self.asset_list = self.db_asset_list(min_date=min_date)
         self.min_date = min_date
+        self.max_date = max_date
         # self.datetime_index = self._gen_time_index(min_date, max_date)
         self.train_test_split = train_test_split
 
@@ -44,7 +45,8 @@ class Data_Manager:
         with sqlite3.connect(self._db_path) as con:
             cur = con.cursor()
             for asset in self.asset_list:
-                cur.execute("SELECT * FROM {} WHERE date >= {}".format(asset, self.min_date))
+                cur.execute("SELECT * FROM {} WHERE date >= {} AND date <= {}".format(
+                            asset, self.min_date, self.max_date))
                 df = pd.DataFrame(cur.fetchall(), columns=(
                     'date', 'open', 'high', 'low', 'close', 'volume'))
 
