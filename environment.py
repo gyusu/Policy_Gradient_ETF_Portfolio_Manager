@@ -47,13 +47,13 @@ class Environment:
         reward = self.calc_PV(action)
         self.prev_action = action
 
-        observation = self.feature_df.iloc[self.idx+1-self.window_size : self.idx+1]
+        observation = self.feature_df.iloc[self.idx-self.window_size : self.idx]
         observation = self._observation_fmt(observation)
 
-        future_price = self.feature_df.iloc[self.idx: self.idx+2]
+        future_price = self.feature_df.iloc[self.idx-1: self.idx+1]
         future_price = self._future_price_fmt(future_price)
 
-        if self.idx + 2 >= len(self.feature_df):
+        if self.idx + 1 >= len(self.feature_df):
             done = True
 
         return observation, reward, done, future_price
