@@ -1,6 +1,6 @@
 # Policy_Gradient_ETF_Portfolio_Manager
 
-Policy Gradient기법을 이용하여
+Deterministic Policy Gradient Algorithm을 이용하여
 ETF 상품 15개의 포트폴리오를 구성하는 프로그램
 
 # TODO (단기적)
