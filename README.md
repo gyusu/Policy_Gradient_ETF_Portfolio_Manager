@@ -3,6 +3,9 @@
 Deterministic Policy Gradient Algorithm을 이용하여
 ETF 상품 15개의 포트폴리오를 구성하는 프로그램
 
+거래 대상 종목은 asset_name.csv 에서 확인할 수 있다. 
+
+
 # TODO (단기적)
 1. loss(critic) 변경 (sharp ratio or mse between portfolio value gain and optimal) 현재는 단순히 portfolio value gain이용중
 1. 초기값에 따라 policy 수렴이 달라지는 문제 해결(앙상블 or 모델 구조 변경)
