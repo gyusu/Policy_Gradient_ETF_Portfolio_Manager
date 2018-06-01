@@ -7,6 +7,8 @@ from agent import Agent
 import simulator
 import visualizer
 
+visualizer.init_visualizer()
+
 window_size = 30
 batch_size = 30
 episode = 100
@@ -19,8 +21,7 @@ train_df, test_df = dm.generate_feature_df(df)
 
 # window_size 만큼 test_df 상단 row에 복사
 test_df = pd.concat([train_df.iloc[-window_size:], test_df])
-visualizer.plot_df(train_df)
-visualizer.plot_df(test_df)
+visualizer.plot_dfs([train_df, test_df], ['train', 'test'])
 print("학습 데이터의 asset 개수 : ", len(train_df.columns.levels[0]))
 
 with tf.Session() as sess:
