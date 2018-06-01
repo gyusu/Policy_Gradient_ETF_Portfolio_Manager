@@ -27,4 +27,5 @@ def policy_simulator(env: Environment, agent: Agent, verbose=True):
 
         i += 1
 
+
     return obs, actions, rewards, fps

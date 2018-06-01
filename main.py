@@ -6,6 +6,7 @@ from environment import Environment
 from agent import Agent
 import simulator
 import visualizer
+import train_assistant
 
 visualizer.init_visualizer()
 
@@ -40,10 +41,10 @@ with tf.Session() as sess:
         print("train episode {}/{}".format(i+1, episode))
         obs, acts, rews, fps = simulator.policy_simulator(train_env, pg_agent)
 
-        for j in range(int(len(obs)/batch_size)):
-            idx_from = j * batch_size
-            idx_to = idx_from + batch_size
-            pg_agent.train_step(obs[idx_from:idx_to+1], fps[idx_from:idx_to+1])
+        obs_batches, fps_batches = train_assistant.batch_shuffling(obs, fps, batch_size)
+
+        for obs, fps in zip(obs_batches, fps_batches):
+            pg_agent.train_step(obs, fps)
 
         _, test_actions, test_rewards, _ = simulator.policy_simulator(test_env, pg_agent)
         visualizer.plot_reward(i, test_rewards)

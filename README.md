@@ -14,7 +14,7 @@ ETF 상품 15개의 포트폴리오를 구성하는 프로그램
 1. 모델 간 비교를 위한 메트릭 정하기
 1. 거래 수수료 적용
 1. 종목별 상한, 하한 적용
-1. batch suffling
+1. ~~batch shuffling~~ DONE
 
 
 # TODO (장기적)
