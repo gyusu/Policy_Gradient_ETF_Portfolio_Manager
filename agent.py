@@ -53,9 +53,6 @@ class Agent:
         # t시점 대비 t+1 시점의 포트폴리오 가치 변화율.
         self.pv_gain_vector = tf.reduce_sum(self.action * self.future_price, axis=1)
 
-        # 각 시점의 포트폴리오 가치 변화율을 로그 취한 뒤 평균낸 값
-        self.log_mean_pv_gain = -tf.reduce_mean(tf.log(self.pv_gain_vector))
-
         # batch 기간동안의 최종 포트폴리오 가치 변화율. e.g batch 기간동안 1.5배 가치 상승
         self.portfolio_value = tf.reduce_prod(self.pv_gain_vector)
 
@@ -65,10 +62,18 @@ class Agent:
         self.mean_log_mkt_return = tf.reduce_mean(tf.log(self.mkt_return))
         self.mean_log_pv_return = tf.reduce_mean(tf.log(self.pv_gain_vector))
         self.std_log_pv_return = tf.sqrt(tf.reduce_mean((tf.log(self.pv_gain_vector) - self.mean_log_pv_return) ** 2))
+
         self.sharpe_ratio = (self.mean_log_pv_return - self.mean_log_mkt_return) / self.std_log_pv_return
 
-        # self.loss = self.log_mean_pv_gain
-        self.loss = -self.sharpe_ratio
+        # Information Ratio를 구하기 위한 tensor들...
+        self.log_pv_mkt_diff = tf.log(self.pv_gain_vector) - tf.log(self.mkt_return)
+        self.mean_log_pv_mkt_diff = tf.reduce_mean(self.log_pv_mkt_diff)
+        self.std_log_pv_mkt_diff = tf.sqrt(tf.reduce_mean((self.log_pv_mkt_diff - self.mean_log_pv_mkt_diff) ** 2))
+
+        self.information_ratio = self.mean_log_pv_mkt_diff / self.std_log_pv_mkt_diff
+
+        # self.loss = -self.sharpe_ratio
+        self.loss = -self.information_ratio
         self.train_op = tf.train.AdamOptimizer(learning_rate=lr).minimize(self.loss)
 
 
@@ -79,15 +84,15 @@ class Agent:
 
     def train_step(self, obs_b, future_price_b):
 
-
-
         batch_feed = {
             self.X: obs_b,
             self.future_price: future_price_b,
             self.is_training: True,
         }
 
-        l, pv, _, mmr, sr = self.sess.run([self.loss, self.portfolio_value, self.train_op,
-                                           self.mean_log_mkt_return, self.sharpe_ratio],
+        l, pv, _, ir = self.sess.run([self.loss, self.portfolio_value, self.train_op,
+                                      self.information_ratio],
                                  feed_dict=batch_feed)
-        print("loss:{} PV:{} MMR:{} SR:{}".format(l, pv, mmr, sr))
+        print("loss:{:9.6f} PV:{:9.6f} IR:{:9.6f}".format(l, pv, ir))
+
+        return l, pv, ir

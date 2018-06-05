@@ -42,9 +42,16 @@ with tf.Session() as sess:
         obs, acts, rews, fps = simulator.policy_simulator(train_env, pg_agent)
 
         obs_batches, fps_batches = train_assistant.batch_shuffling(obs, fps, batch_size)
-
+        epi_loss, epi_pv, epi_ir, nb_batch = 0, 1, 0, 0
         for obs, fps in zip(obs_batches, fps_batches):
-            pg_agent.train_step(obs, fps)
+            loss, pv, ir = pg_agent.train_step(obs, fps)
+            epi_loss += loss
+            epi_pv *= pv
+            epi_ir += ir
+            nb_batch += 1
 
+        print("[episode {}] avg loss:{:.6} PV:{:.6} avg IR:{:.6}".format(i, epi_loss/nb_batch, epi_pv, epi_ir/nb_batch))
+
+        print("test simulation")
         _, test_actions, test_rewards, _ = simulator.policy_simulator(test_env, pg_agent)
         visualizer.plot_reward(i, test_rewards)
