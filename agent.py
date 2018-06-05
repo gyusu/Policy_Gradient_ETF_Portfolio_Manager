@@ -14,23 +14,18 @@ class Agent:
         action_shape = [None, nb_asset]
 
         self.sess = sess
+        self.is_training = tf.placeholder(tf.bool)
 
         # build the graph
         self.X = tf.placeholder(tf.float32, shape=input_shape, name='observation')
 
         with tf.name_scope("Conv1"):
-            conv1 = tf.layers.conv2d(self.X,
-                                     filters=5,
-                                     kernel_size=[1, 3],
-                                     strides=[1, 1],
+            conv1 = tf.layers.conv2d(self.X, filters=5, kernel_size=[1, 3], strides=[1, 1],
                                      activation=tf.nn.relu, )
         print(conv1)
 
         with tf.name_scope("Conv2"):
-            conv2 = tf.layers.conv2d(conv1,
-                                     filters=100,
-                                     kernel_size=[1, window_size-3+1],
-                                     strides=[1, 1],
+            conv2 = tf.layers.conv2d(conv1, filters=100, kernel_size=[1, window_size-3+1], strides=[1, 1],
                                      activation=tf.nn.relu, )
         print(conv2)
 
@@ -39,8 +34,7 @@ class Agent:
 
         # Add dropout
         with tf.name_scope("dropout"):
-            self.output_keep_prob = tf.placeholder(tf.float32, name='output_keep_prob')
-            conv2_flatten_drop = tf.nn.dropout(conv2_flatten, self.output_keep_prob)
+            conv2_flatten_drop = tf.layers.dropout(conv2_flatten, rate=0.5, training=self.is_training)
 
         logits = tf.contrib.layers.fully_connected(conv2_flatten_drop, action_shape[1],
                                                    activation_fn=None)
@@ -65,19 +59,35 @@ class Agent:
         # batch 기간동안의 최종 포트폴리오 가치 변화율. e.g batch 기간동안 1.5배 가치 상승
         self.portfolio_value = tf.reduce_prod(self.pv_gain_vector)
 
-        self.loss = self.log_mean_pv_gain
+        # Sharpe_Ratio를 구하기 위한 tensor들...
+        # 배치 기간동안 마켓의 수익률
+        self.mkt_return = tf.reduce_mean(self.future_price, axis=-1)
+        self.mean_log_mkt_return = tf.reduce_mean(tf.log(self.mkt_return))
+        self.mean_log_pv_return = tf.reduce_mean(tf.log(self.pv_gain_vector))
+        self.std_log_pv_return = tf.sqrt(tf.reduce_mean((tf.log(self.pv_gain_vector) - self.mean_log_pv_return) ** 2))
+        self.sharpe_ratio = (self.mean_log_pv_return - self.mean_log_mkt_return) / self.std_log_pv_return
+
+        # self.loss = self.log_mean_pv_gain
+        self.loss = -self.sharpe_ratio
         self.train_op = tf.train.AdamOptimizer(learning_rate=lr).minimize(self.loss)
+
+
 
     def decide_action(self, obs):
         return self.sess.run(self.action, feed_dict={
-            self.X: obs, self.output_keep_prob: 1.0})
+            self.X: obs, self.is_training: False})
 
     def train_step(self, obs_b, future_price_b):
+
+
+
         batch_feed = {
             self.X: obs_b,
             self.future_price: future_price_b,
-            self.output_keep_prob: 0.5
+            self.is_training: True,
         }
 
-        l, pv, _ = self.sess.run([self.loss, self.portfolio_value, self.train_op], feed_dict=batch_feed)
-        print(l, pv)
+        l, pv, _, mmr, sr = self.sess.run([self.loss, self.portfolio_value, self.train_op,
+                                           self.mean_log_mkt_return, self.sharpe_ratio],
+                                 feed_dict=batch_feed)
+        print("loss:{} PV:{} MMR:{} SR:{}".format(l, pv, mmr, sr))
