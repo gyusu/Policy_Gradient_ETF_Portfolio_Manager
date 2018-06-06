@@ -29,6 +29,7 @@ class Environment:
 
         return observation
 
+
     def step(self, action):
         """
 
@@ -41,13 +42,14 @@ class Environment:
         """
 
         done = False
-        self.idx += 1
 
         action = self._validate_action(action)
         reward = self.calc_PV(action)
         self.prev_action = action
 
-        observation = self.feature_df.iloc[self.idx-self.window_size : self.idx]
+        self.idx += 1
+
+        observation = self.feature_df.iloc[self.idx-self.window_size+1: self.idx+1]
         observation = self._observation_fmt(observation)
 
         future_price = self.feature_df.iloc[self.idx-1: self.idx+1]
@@ -58,14 +60,36 @@ class Environment:
 
         return observation, reward, done, future_price
 
+
+    def observe(self):
+        """
+        action을 하지 않고 그냥 관찰만 하는 메소드. step의 느린 속도 때문에 따로 구현함
+        :return:
+        """
+
+        done = False
+
+        self.idx += 1
+
+        observation = self.feature_df.iloc[self.idx - self.window_size + 1: self.idx + 1]
+        observation = self._observation_fmt(observation)
+
+        future_price = self.feature_df.iloc[self.idx - 1: self.idx + 1]
+        future_price = self._future_price_fmt(future_price)
+
+        if self.idx + 1 >= len(self.feature_df):
+            done = True
+
+        return observation, done, future_price
+
     def calc_PV(self, action):
         """
         :param action:
         :param observation:
         :return: 포트폴리오 밸류를 리턴한다. 단위 : 원화
         """
-        price0_arr = self.feature_df.iloc[self.idx-1][:, 'close'].values
-        price_arr = self.feature_df.iloc[self.idx][:, 'close'].values
+        price0_arr = self.feature_df.iloc[self.idx][:, 'close'].values
+        price_arr = self.feature_df.iloc[self.idx+1][:, 'close'].values
 
         pv = sum(price_arr / price0_arr * action * self.prev_pv)
 
