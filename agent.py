@@ -105,15 +105,29 @@ class Agent:
         }
 
         if is_train:
-            rw, pv, _, ir, pv_vec, mean_std_act = self.sess.run([self.reward, self.portfolio_value, self.train_op,
-                                          self.information_ratio, self.pv_gain_vector, self.mean_std_action],
+            rw, pv, _, ir, pv_vec, mean_std_act, actions = self.sess.run([self.reward, self.portfolio_value, self.train_op,
+                                          self.information_ratio, self.pv_gain_vector, self.mean_std_action, self.action],
                                          feed_dict=batch_feed)
         else:
-            rw, pv, ir, pv_vec, mean_std_act = self.sess.run([self.reward, self.portfolio_value,
-                                       self.information_ratio, self.pv_gain_vector, self.mean_std_action],
+            rw, pv, ir, pv_vec, mean_std_act, actions = self.sess.run([self.reward, self.portfolio_value,
+                                       self.information_ratio, self.pv_gain_vector, self.mean_std_action, self.action],
                                       feed_dict=batch_feed)
 
         if verbose:
             print("reward:{:9.6f} PV:{:9.6f} IR:{:9.6f} {}".format(rw, pv, ir, mean_std_act))
 
+            if not is_train:
+                print("action:")
+                for act in actions:
+                    print('test', end=' ')
+                    for a in act:
+                        print("{:6.2f}".format(a * 100), end=' ')
+                    print()
+            else:
+                print("action:")
+                for act in actions:
+                    print('train', end=' ')
+                    for a in act:
+                        print("{:6.2f}".format(a * 100), end=' ')
+                    print()
         return rw, pv, ir, pv_vec
