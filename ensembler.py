@@ -16,7 +16,6 @@ def ensemble_test(agents: list, test_env):
     for i, pg_agent in enumerate(agents):
         test_reward, test_pv, test_ir, test_pv_vec = pg_agent.run_batch(test_obs[1:], test_fps[1:], is_train=False,
                                                                     verbose=False)
-        print(test_pv_vec)
         print("[agent #{} test] reward:{:9.6f} PV:{:9.6f} IR:{:9.6f}".format(i, test_reward, test_pv, test_ir))
 
 
@@ -32,7 +31,7 @@ def ensemble_test(agents: list, test_env):
             print()
             actions.append(act[0])
         actions = np.array(actions).cumsum(axis=0)[-1]
-        actions /= 3
+        actions /= len(agents)
         print('MEAN     : ', end='')
         for a in actions:
             print("{:6.2f}".format(a * 100), end=' ')

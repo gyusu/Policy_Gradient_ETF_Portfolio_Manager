@@ -37,7 +37,6 @@ def train_and_test(pg_agent, train_env, test_env, batch_size, episode):
         print("[train] avg_reward:{:9.6f} avg_PV:{:9.6f} avg_IR:{:9.6f}".format(epi_reward/nb_batch, epi_pv/nb_batch, epi_ir/nb_batch))
 
         test_reward, test_pv, test_ir, test_pv_vec = pg_agent.run_batch(test_obs[1:], test_fps[1:], is_train=False, verbose=True)
-        print(test_pv_vec)
         print("[test]      reward:{:9.6f} PV:{:9.6f}     IR:{:9.6f}".format(test_reward, test_pv, test_ir))
 
         train_reward_list.append(epi_reward/nb_batch)

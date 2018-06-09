@@ -13,15 +13,15 @@ visualizer.init_visualizer()
 
 WINDOW_SIZE = 60
 BATCH_SIZE = 30
-EPISODE = 5
+EPISODE = 10
 LEARNING_RATE = 0.001
 VALIDATION = False
-ENSEMBLE_NUM = 5
+ENSEMBLE_NUM = 10
 
 ROLLING_TRAIN_TEST = False
 
 # 학습/ 테스트 data 설정
-dm = Data_Manager('./gaps.db',20151113, 20180531, train_test_split=0.5, validation=VALIDATION)
+dm = Data_Manager('./gaps.db',20151113, 20180531, train_test_split=0.8, validation=VALIDATION)
 df = dm.load_db()
 train_df, validation_df, test_df = dm.generate_feature_df(df)
 print(test_df.iloc[0])
