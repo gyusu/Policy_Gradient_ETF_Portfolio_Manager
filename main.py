@@ -9,14 +9,14 @@ visualizer.init_visualizer()
 
 WINDOW_SIZE = 60
 BATCH_SIZE = 30
-EPISODE = 20
+EPISODE = 10
 LEARNING_RATE = 0.001
 VALIDATION = False
 
 ROLLING_TRAIN_TEST = True
 
 # 학습/ 테스트 data 설정
-dm = Data_Manager('./gaps.db',20151113, 20171031, train_test_split=0.79, validation=VALIDATION)
+dm = Data_Manager('./gaps.db',20151113, 20180531, train_test_split=0.5, validation=VALIDATION)
 df = dm.load_db()
 train_df, validation_df, test_df = dm.generate_feature_df(df)
 print(test_df.iloc[0])
@@ -35,6 +35,6 @@ print("학습 데이터의 asset 개수 : ", len(train_df.columns.levels[0]))
 
 if ROLLING_TRAIN_TEST:
     trainer.rolling_train_and_test(train_df, test_df, BATCH_SIZE, WINDOW_SIZE, LEARNING_RATE, EPISODE)
-
+    # trainer.rolling_train_and_test_v2(train_df, test_df, BATCH_SIZE, WINDOW_SIZE, LEARNING_RATE)
 else:
     trainer.train_and_test(train_df, test_df, BATCH_SIZE, WINDOW_SIZE, LEARNING_RATE, EPISODE)

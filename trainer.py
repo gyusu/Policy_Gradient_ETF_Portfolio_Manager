@@ -55,7 +55,11 @@ def train_and_test(train_df, test_df, batch_size, window_size, learning_rate, ep
             visualizer.plot_reward(i, train_reward_list, test_reward_list)
 
 def rolling_train_and_test(train_df, test_df, batch_size, window_size, learning_rate, pre_train_episode):
-
+    """
+    만약 이 함수를 수정하려는 경우 train과 test 인덱싱에 매우 주의하여야 한다.
+    만약 obs[i]와 fps[i]가 있다면, fps[i]는 i+1 시점의 가격 데이터를 알고 있는 것임.
+    따라서 obs[i]와 fps[i]를 feed하여 학습한뒤 obs[i+1]를 feed하여 action을 얻는것은 큰 오류임
+    """
     with tf.Session() as sess:
         # train, test env 생성
         train_env = Environment(train_df, window_size)
@@ -71,6 +75,7 @@ def rolling_train_and_test(train_df, test_df, batch_size, window_size, learning_
 
         # 학습
         print("Rolling Train Start!!!!!")
+        print('전처리 후 데이터 수 train: {}, test: {}'.format(len(obs), len(test_obs)-1))
 
         train_reward_list = []
         test_reward_list = []
@@ -91,7 +96,7 @@ def rolling_train_and_test(train_df, test_df, batch_size, window_size, learning_
                                                                                     epi_pv / nb_batch,
                                                                                     epi_ir / nb_batch))
 
-            test_reward, test_pv, test_ir, test_pv_vec = pg_agent.run_batch(test_obs, test_fps, is_train=False,
+            test_reward, test_pv, test_ir, test_pv_vec = pg_agent.run_batch(test_obs[1:], test_fps[1:], is_train=False,
                                                                             verbose=True)
             print(test_pv_vec)
             print("[test]      reward:{:9.6f} PV:{:9.6f}     IR:{:9.6f}".format(test_reward, test_pv, test_ir))
@@ -107,14 +112,16 @@ def rolling_train_and_test(train_df, test_df, batch_size, window_size, learning_
         fps[len(fps):len(fps)] = test_fps
         pv_list = []
         test_env.reset()
-        for i in range(test_obs_len):
-            action = pg_agent.decide_action([test_obs[i]])
+        for i in range(test_obs_len-1):
+            idx_from = train_obs_len - batch_size + 1 + i
+            idx_to = idx_from + batch_size
+
+            action = pg_agent.decide_action([obs[idx_to]])
             observation, pv, done, future_price = test_env.step(action[0])
             pv_list.append(pv)
-            print(pv)
+            print("test_step: {}, PV: {}".format(i, pv))
 
-            idx_from = train_obs_len - test_obs_len + 2 + i
-            idx_to = idx_from + test_obs_len
+
             rolling_train_obs = obs[idx_from: idx_to]
             rolling_train_fps = fps[idx_from: idx_to]
 
@@ -122,3 +129,4 @@ def rolling_train_and_test(train_df, test_df, batch_size, window_size, learning_
                 rolling_train_obs, rolling_train_fps = \
                     train_assistant.asset_shuffling(rolling_train_obs, rolling_train_fps)
                 pg_agent.run_batch(rolling_train_obs, rolling_train_fps, is_train=True)
+
