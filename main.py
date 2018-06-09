@@ -14,12 +14,12 @@ tf.set_random_seed(1531)
 visualizer.init_visualizer()
 
 window_size = 60
-batch_size = 30
+batch_size = 15
 episode = 200
 learning_rate = 0.001
 
 # 학습용 data
-dm = Data_Manager('./gaps.db', train_test_split=0.9)
+dm = Data_Manager('./gaps.db',20151113, 20180525, train_test_split=0.9)
 df = dm.load_db()
 train_df, test_df = dm.generate_feature_df(df)
 
@@ -51,15 +51,19 @@ with tf.Session() as sess:
         print("\ntrain episode {}/{}".format(i+1, episode))
 
         obs_batches, fps_batches = train_assistant.batch_shuffling(obs, fps, batch_size)
-        epi_reward, epi_pv, epi_ir, nb_batch = 0, 1, 0, 0
+        epi_reward, epi_pv, epi_ir, nb_batch = 0, 0, 0, 0
         for _obs, _fps in zip(obs_batches, fps_batches):
-            loss, pv, ir, pv_vec = pg_agent.run_batch(_obs, _fps, is_train=True, verbose=True)
+
+            p = np.random.permutation(_obs.shape[1])
+            _obs = _obs[:, p]
+            _fps = _fps[:, p]
+            loss, pv, ir, pv_vec = pg_agent.run_batch(_obs, _fps, is_train=True)
             epi_reward += loss
-            epi_pv *= pv
+            epi_pv += pv
             epi_ir += ir
             nb_batch += 1
 
-        print("[train] avg_reward:{:9.6f} PV:{:9.6f} avg_IR:{:9.6f}".format(epi_reward/nb_batch, epi_pv, epi_ir/nb_batch))
+        print("[train] avg_reward:{:9.6f} avg_PV:{:9.6f} avg_IR:{:9.6f}".format(epi_reward/nb_batch, epi_pv/nb_batch, epi_ir/nb_batch))
 
         test_reward, test_pv, test_ir, test_pv_vec = pg_agent.run_batch(test_obs, test_fps, is_train=False, verbose=True)
         print(test_pv_vec)

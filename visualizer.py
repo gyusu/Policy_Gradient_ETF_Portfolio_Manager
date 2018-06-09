@@ -43,7 +43,7 @@ def plot_dfs(dfs: list, df_title: list):
                 plt.xticks(rotation=50)
 
             plt.plot(asset_df.index, asset_df['close']/asset_df['close'].iloc[0],
-                     label=asset_name_dict[asset_code])
+                     label=str(i)+asset_name_dict[asset_code])
             plt.legend()
 
 

@@ -3,7 +3,7 @@ import tensorflow as tf
 
 class Agent:
 
-    def __init__(self, sess, obs_shape, lr=0.0005):
+    def __init__(self, sess, obs_shape, lr=0.000005):
         """
         :param sess: tf.Session
         :param obs_shape: [1, nb_asset, window_size, nb_feature] e.g. [1, 15, 30, 5]
@@ -22,35 +22,42 @@ class Agent:
         with tf.name_scope("Conv1"):
             conv1 = tf.layers.conv2d(self.X, filters=128, kernel_size=[1, 3], strides=[1, 1],
                                      activation=tf.nn.relu, )
-        print(conv1)
-        conv1 = tf.layers.dropout(conv1, rate=0.7, training=self.is_training)
+            print(conv1)
+            conv1 = tf.layers.max_pooling2d(conv1, [1, 2], [1, 2])
+            print(conv1)
+        conv1 = tf.layers.dropout(conv1, rate=0.1, training=self.is_training)
 
-        conv1 = tf.transpose(conv1, [0, 2, 1, 3])
-        print(conv1)
-        conv1 = tf.reshape(conv1, [-1, window_size-3+1, 15 * 128])
+        # conv1 = tf.transpose(conv1, [0, 2, 1, 3])
+        # print(conv1)
+        # conv1 = tf.reshape(conv1, [-1, window_size-3+1, 15 * 128])
 
-        cells = [tf.contrib.rnn.GRUCell(128) for _ in range(2)]
-        cells = tf.contrib.rnn.MultiRNNCell(cells, state_is_tuple=True)
-
-        rnn_out, _states = tf.nn.dynamic_rnn(cells, conv1, dtype=tf.float32)
-
-        print(rnn_out)
-
-        # with tf.name_scope("Conv2"):
-        #     conv2 = tf.layers.conv2d(rnn_out, filters=256, kernel_size=[1, window_size-3+1], strides=[1, 1],
-        #                              activation=tf.nn.relu, )
-        # print(conv2)
-        # conv2 = tf.layers.dropout(conv2, rate=0.5, training=self.is_training)
+        # cells = [tf.contrib.rnn.GRUCell(128) for _ in range(2)]
+        # cells = tf.contrib.rnn.MultiRNNCell(cells, state_is_tuple=True)
         #
-        conv2_flatten = tf.contrib.layers.flatten(rnn_out)
-        print(conv2_flatten)
+        # rnn_out, _states = tf.nn.dynamic_rnn(cells, conv1, dtype=tf.float32)
+        #
+        # print(rnn_out)
 
-        logits = tf.contrib.layers.fully_connected(conv2_flatten, action_shape[1],
-                                                   activation_fn=None)
+        with tf.name_scope("Conv2"):
+            conv2 = tf.layers.conv2d(conv1, filters=64, kernel_size=[1, (window_size-3+1)/2], strides=[1, 1],
+                                     activation=tf.nn.relu, )
+        print(conv2)
+        conv2 = tf.layers.dropout(conv2, rate=0.1, training=self.is_training)
+
+        with tf.name_scope("Conv3"):
+            conv3 = tf.layers.conv2d(conv2, filters=1, kernel_size=[1, 1], strides=[1, 1])
+
+        # conv2_flatten = tf.contrib.layers.flatten(rnn_out)
+        # print(conv2_flatten)
+
+        # logits = tf.contrib.layers.fully_connected(conv2_flatten, action_shape[1],
+        #                                            activation_fn=None)
+        conv3 = tf.contrib.layers.flatten(conv3)
 
         # Action (portfolio weight vector)
-        self.action = tf.nn.softmax(logits, name='action')
+        self.action = tf.nn.softmax(conv3, name='action')
         print(self.action)
+
 
         self.mean_action = 1 / nb_asset
         print(self.mean_action)
