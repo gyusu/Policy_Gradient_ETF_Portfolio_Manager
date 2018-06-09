@@ -3,7 +3,7 @@ import tensorflow as tf
 
 class Agent:
 
-    def __init__(self, sess, obs_shape, batch_size, lr=0.000005):
+    def __init__(self, sess, obs_shape, lr=0.000005):
         """
         :param sess: tf.Session
         :param obs_shape: [1, nb_asset, window_size, nb_feature] e.g. [1, 15, 30, 5]
@@ -15,7 +15,7 @@ class Agent:
 
         self.sess = sess
         self.is_training = tf.placeholder(tf.bool)
-
+        self.batch_size = tf.placeholder(tf.int32)
         # build the graph
         self.X = tf.placeholder(tf.float32, shape=input_shape, name='observation')
 
@@ -25,7 +25,7 @@ class Agent:
             print(conv1)
             conv1 = tf.layers.max_pooling2d(conv1, [1, 2], [1, 2])
             print(conv1)
-        conv1 = tf.layers.dropout(conv1, rate=0.5, noise_shape=[batch_size, nb_asset, (window_size-3+1)/2, 128], training=self.is_training)
+        conv1 = tf.layers.dropout(conv1, rate=0.5, noise_shape=[self.batch_size, nb_asset, (window_size-3+1)//2, 128], training=self.is_training)
 
         # conv1 = tf.transpose(conv1, [0, 2, 1, 3])
         # print(conv1)
@@ -39,10 +39,10 @@ class Agent:
         # print(rnn_out)
 
         with tf.name_scope("Conv2"):
-            conv2 = tf.layers.conv2d(conv1, filters=64, kernel_size=[1, (window_size-3+1)/2], strides=[1, 1],
+            conv2 = tf.layers.conv2d(conv1, filters=64, kernel_size=[1, (window_size-3+1)//2], strides=[1, 1],
                                      activation=tf.nn.relu, )
         print(conv2)
-        conv2 = tf.layers.dropout(conv2, rate=0.5, noise_shape=[batch_size, nb_asset, 1, 64],training=self.is_training)
+        conv2 = tf.layers.dropout(conv2, rate=0.5, noise_shape=[self.batch_size, nb_asset, 1, 64],training=self.is_training)
 
         with tf.name_scope("Conv3"):
             conv3 = tf.layers.conv2d(conv2, filters=1, kernel_size=[1, 1], strides=[1, 1])
@@ -102,7 +102,7 @@ class Agent:
 
     def decide_action(self, obs):
         return self.sess.run(self.action, feed_dict={
-            self.X: obs, self.is_training: False})
+            self.X: obs, self.is_training: False, self.batch_size: len(obs)})
 
     def run_batch(self, obs_b, future_price_b, is_train, verbose=False):
 
@@ -110,6 +110,7 @@ class Agent:
             self.X: obs_b,
             self.future_price: future_price_b,
             self.is_training: is_train,
+            self.batch_size: len(obs_b)
         }
 
         if is_train:

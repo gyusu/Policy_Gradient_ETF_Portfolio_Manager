@@ -64,6 +64,7 @@ def plot_reward(episode, train_reward, test_reward):
     plt.title("{} episode reward".format(episode))
     plt.plot(train_reward, label='train')
     plt.plot(test_reward, label='test')
+    plt.legend()
 
     # e.g. ./result_plot/01/step01.png
     plt.savefig(os.path.join(savefig_dir, 'episode_reward{:02}.png'.format(episode)))

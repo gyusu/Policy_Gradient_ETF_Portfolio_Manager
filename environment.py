@@ -9,7 +9,7 @@ class Environment:
             set(feature_df.columns.levels[1]) - {'open', 'high', 'low', 'close', 'volume'})
         self.asset_list = feature_df.columns.levels[0].tolist()
 
-        self.init_money = 10000000
+        self.init_money = 1000000
         self.window_size = window_size
 
         self.idx = window_size - 1
