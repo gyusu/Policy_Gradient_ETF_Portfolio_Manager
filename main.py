@@ -1,31 +1,25 @@
-import tensorflow as tf
 import pandas as pd
 import numpy as np
 
 from data_manager import Data_Manager
-from environment import Environment
-from agent import Agent
-import simulator
 import visualizer
-import train_assistant
 import trainer
-
-tf.set_random_seed(1531)
 
 visualizer.init_visualizer()
 
 WINDOW_SIZE = 60
 BATCH_SIZE = 30
-EPISODE = 200
+EPISODE = 20
 LEARNING_RATE = 0.001
 VALIDATION = False
 
 ROLLING_TRAIN_TEST = True
 
 # 학습/ 테스트 data 설정
-dm = Data_Manager('./gaps.db',20151113, 20180525, train_test_split=0.9, validation=VALIDATION)
+dm = Data_Manager('./gaps.db',20151113, 20171031, train_test_split=0.79, validation=VALIDATION)
 df = dm.load_db()
 train_df, validation_df, test_df = dm.generate_feature_df(df)
+print(test_df.iloc[0])
 
 print("데이터 수 train: {}, val: {}, test: {}".format(len(train_df), len(validation_df), len(test_df)))
 

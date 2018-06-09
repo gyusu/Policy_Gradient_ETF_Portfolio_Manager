@@ -2,12 +2,13 @@ import tensorflow as tf
 import pandas as pd
 import numpy as np
 
-from data_manager import Data_Manager
 from environment import Environment
 from agent import Agent
 import simulator
 import visualizer
 import train_assistant
+
+tf.set_random_seed(1531)
 
 def train_and_test(train_df, test_df, batch_size, window_size, learning_rate, episode):
 
@@ -121,4 +122,5 @@ def rolling_train_and_test(train_df, test_df, batch_size, window_size, learning_
             rolling_train_obs = obs[idx_from: idx_to]
             rolling_train_fps = fps[idx_from: idx_to]
 
-            pg_agent.run_batch(rolling_train_obs, rolling_train_fps, is_train=True)
+            for j in range(20):
+                pg_agent.run_batch(rolling_train_obs, rolling_train_fps, is_train=True)

@@ -16,12 +16,15 @@ class Agent:
         self.sess = sess
         self.is_training = tf.placeholder(tf.bool)
         self.batch_size = tf.placeholder(tf.int32)
+        self._global_step = 0
+        self.global_step = tf.placeholder(tf.int64)
         # build the graph
         self.X = tf.placeholder(tf.float32, shape=input_shape, name='observation')
 
         with tf.name_scope("Conv1"):
             conv1 = tf.layers.conv2d(self.X, filters=128, kernel_size=[1, 3], strides=[1, 1],
-                                     activation=tf.nn.relu, )
+                                     kernel_initializer=tf.contrib.layers.xavier_initializer(),
+                                     activation=tf.nn.relu)
             print(conv1)
             conv1 = tf.layers.max_pooling2d(conv1, [1, 2], [1, 2])
             print(conv1)
@@ -40,12 +43,14 @@ class Agent:
 
         with tf.name_scope("Conv2"):
             conv2 = tf.layers.conv2d(conv1, filters=64, kernel_size=[1, (window_size-3+1)//2], strides=[1, 1],
-                                     activation=tf.nn.relu, )
+                                     kernel_initializer=tf.contrib.layers.xavier_initializer(),
+                                     activation=tf.nn.relu)
         print(conv2)
         conv2 = tf.layers.dropout(conv2, rate=0.5, noise_shape=[self.batch_size, nb_asset, 1, 64],training=self.is_training)
 
         with tf.name_scope("Conv3"):
-            conv3 = tf.layers.conv2d(conv2, filters=1, kernel_size=[1, 1], strides=[1, 1])
+            conv3 = tf.layers.conv2d(conv2, filters=1, kernel_size=[1, 1], strides=[1, 1],
+                                     kernel_initializer=tf.contrib.layers.xavier_initializer())
 
         # conv2_flatten = tf.contrib.layers.flatten(rnn_out)
         # print(conv2_flatten)
@@ -97,7 +102,7 @@ class Agent:
         self.reward = self.information_ratio
         # self.train_op = tf.train.AdamOptimizer(learning_rate=lr).minimize(-self.reward)
         self.train_op = tf.train.AdagradOptimizer(learning_rate=lr).minimize(-self.reward)
-
+        # self.train_op = tf.train.AdagradDAOptimizer(learning_rate=lr, global_step=self.global_step).minimize(-self.reward)
 
 
     def decide_action(self, obs):
@@ -110,10 +115,12 @@ class Agent:
             self.X: obs_b,
             self.future_price: future_price_b,
             self.is_training: is_train,
-            self.batch_size: len(obs_b)
+            self.batch_size: len(obs_b),
+            self.global_step: self._global_step
         }
 
         if is_train:
+            self._global_step += 1
             rw, pv, _, ir, pv_vec, mean_std_act, actions = self.sess.run([self.reward, self.portfolio_value, self.train_op,
                                           self.information_ratio, self.pv_gain_vector, self.mean_std_action, self.action],
                                          feed_dict=batch_feed)
