@@ -1,6 +1,7 @@
 import os
 import matplotlib
 matplotlib.rc('font', family = 'NanumGothic')
+# matplotlib.use('tkAgg')
 import matplotlib.pyplot as plt
 
 from data_manager import asset_name_dict

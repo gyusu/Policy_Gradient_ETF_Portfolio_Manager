@@ -99,11 +99,12 @@ class Agent:
 
         # self.loss = -self.sharpe_ratio
         # self.reward = self.information_ratio - 0.1 * self.mean_std_action
-        self.reward = self.information_ratio
+        # self.reward = self.information_ratio
+        self.reward = self.sharpe_ratio
         # self.train_op = tf.train.AdamOptimizer(learning_rate=lr).minimize(-self.reward)
         self.train_op = tf.train.AdagradOptimizer(learning_rate=lr).minimize(-self.reward)
         # self.train_op = tf.train.AdagradDAOptimizer(learning_rate=lr, global_step=self.global_step).minimize(-self.reward)
-
+        # self.train_op = tf.train.A
 
     def decide_action(self, obs):
         return self.sess.run(self.action, feed_dict={

@@ -29,6 +29,7 @@ class Data_Manager:
             asset_list = np.array(cur.fetchall())
             asset_list = asset_list.flatten()
             asset_list = [asset for asset in asset_list if asset.startswith('A')]  # use normal stock only
+            asset_list.remove('A130730') # KOSEF 단기자금은 변동성 없는 현금성 자산이므로 국내채권과 자산의 역할이 비슷하여 제외함
 
             if min_date != 0:
                 for asset in asset_list:
