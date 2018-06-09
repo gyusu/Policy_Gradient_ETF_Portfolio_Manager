@@ -8,12 +8,13 @@ asset_name_dict = pd.read_csv('asset_name.csv', index_col=0)
 asset_name_dict = asset_name_dict.to_dict()['name']
 
 class Data_Manager:
-    def __init__(self, db_path, min_date=20160401, max_date=20180525, train_test_split=1.0):
+    def __init__(self, db_path, min_date=20160401, max_date=20180525, train_test_split=1.0, validation=False):
         self._db_path = db_path
         self.asset_list = self.db_asset_list(min_date=min_date)
         self.min_date = min_date
         self.max_date = max_date
         self.train_test_split = train_test_split
+        self.validation = validation
 
     def db_asset_list(self, min_date=0):
         """
@@ -104,5 +105,12 @@ class Data_Manager:
 
         df_train = df[df.index <= split_date]
         df_test = df[df.index > split_date]
+        df_validation = []
+        if self.validation:
+            split_date = df_train.index[int(len(df_train.index) * 0.5) - 1]
+            split_date = dt.datetime(split_date.year, split_date.month, split_date.day)
+            df_validation = df_train[df_train.index > split_date]
+            df_train = df_train[df_train.index <= split_date]
+            return df_train, df_validation, df_test
 
-        return df_train, df_test
+        return df_train, df_validation, df_test

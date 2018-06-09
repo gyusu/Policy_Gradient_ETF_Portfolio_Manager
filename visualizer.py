@@ -49,12 +49,22 @@ def plot_dfs(dfs: list, df_title: list):
 
     plt.show()
 
-def plot_reward(episode, rewards):
+def plot_pv(episode, pv):
 
     fig = plt.figure()
-    plt.title("{} episode".format(episode))
-    plt.plot(rewards)
+    plt.title("{} episode pv".format(episode))
+    plt.plot(pv)
 
     # e.g. ./result_plot/01/step01.png
-    plt.savefig(os.path.join(savefig_dir, 'episode{:02}.png'.format(episode)))
+    plt.savefig(os.path.join(savefig_dir, 'episode_pv{:02}.png'.format(episode)))
+    plt.close(fig)
+
+def plot_reward(episode, train_reward, test_reward):
+    fig = plt.figure()
+    plt.title("{} episode reward".format(episode))
+    plt.plot(train_reward, label='train')
+    plt.plot(test_reward, label='test')
+
+    # e.g. ./result_plot/01/step01.png
+    plt.savefig(os.path.join(savefig_dir, 'episode_reward{:02}.png'.format(episode)))
     plt.close(fig)
