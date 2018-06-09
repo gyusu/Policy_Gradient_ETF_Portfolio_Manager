@@ -36,9 +36,7 @@ def train_and_test(train_df, test_df, batch_size, window_size, learning_rate, ep
             epi_reward, epi_pv, epi_ir, nb_batch = 0, 0, 0, 0
             for _obs, _fps in zip(obs_batches, fps_batches):
 
-                p = np.random.permutation(_obs.shape[1])
-                _obs = _obs[:, p]
-                _fps = _fps[:, p]
+                _obs, _fps = train_assistant.asset_shuffling(_obs, _fps)
                 loss, pv, ir, pv_vec = pg_agent.run_batch(_obs, _fps, is_train=True)
                 epi_reward += loss
                 epi_pv += pv
@@ -82,9 +80,7 @@ def rolling_train_and_test(train_df, test_df, batch_size, window_size, learning_
             obs_batches, fps_batches = train_assistant.batch_shuffling(obs, fps, batch_size)
             epi_reward, epi_pv, epi_ir, nb_batch = 0, 0, 0, 0
             for _obs, _fps in zip(obs_batches, fps_batches):
-                p = np.random.permutation(_obs.shape[1])
-                _obs = _obs[:, p]
-                _fps = _fps[:, p]
+                _obs, _fps = train_assistant.asset_shuffling(_obs, _fps)
                 loss, pv, ir, pv_vec = pg_agent.run_batch(_obs, _fps, is_train=True)
                 epi_reward += loss
                 epi_pv += pv
@@ -123,4 +119,6 @@ def rolling_train_and_test(train_df, test_df, batch_size, window_size, learning_
             rolling_train_fps = fps[idx_from: idx_to]
 
             for j in range(20):
+                rolling_train_obs, rolling_train_fps = \
+                    train_assistant.asset_shuffling(rolling_train_obs, rolling_train_fps)
                 pg_agent.run_batch(rolling_train_obs, rolling_train_fps, is_train=True)
