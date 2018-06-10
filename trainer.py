@@ -10,15 +10,17 @@ import train_assistant
 
 tf.set_random_seed(1531)
 
-def train_and_test(pg_agent, train_env, test_env, batch_size, episode):
+def train_and_test(pg_agent, train_env, val_env, test_env, batch_size, episode, mkt_return):
 
     obs, fps = simulator.policy_simulator(train_env, pg_agent, do_action=False)
     test_obs, test_fps = simulator.policy_simulator(test_env, pg_agent, do_action=False)
+    val_obs, val_fps = simulator.policy_simulator(val_env, pg_agent, do_action=False)
 
     # 학습
     print("Train Start!!!!!")
     print('전처리 후 데이터 수 train: {}, test: {}'.format(len(obs), len(test_obs) - 1))
     train_reward_list = []
+    val_reward_list = []
     test_reward_list = []
     for i in range(episode):
         print("\ntrain episode {}/{}".format(i+1, episode))
@@ -36,18 +38,25 @@ def train_and_test(pg_agent, train_env, test_env, batch_size, episode):
 
         print("[train] avg_reward:{:9.6f} avg_PV:{:9.6f} avg_IR:{:9.6f}".format(epi_reward/nb_batch, epi_pv/nb_batch, epi_ir/nb_batch))
 
-        test_reward, test_pv, test_ir, test_pv_vec = pg_agent.run_batch(test_obs[1:], test_fps[1:], is_train=False, verbose=True)
+        val_reward, val_pv, val_ir, val_pv_vec = pg_agent.run_batch(val_obs[1:], val_fps[1:], is_train=False,
+                                                                        verbose=True)
+        print("[val ]      reward:{:9.6f} PV:{:9.6f}     IR:{:9.6f}".format(val_reward, val_pv, val_ir))
+
+        test_reward, test_pv, test_ir, test_pv_vec = pg_agent.run_batch(test_obs[1:], test_fps[1:], is_train=False,
+                                                                        verbose=True)
         print("[test]      reward:{:9.6f} PV:{:9.6f}     IR:{:9.6f}".format(test_reward, test_pv, test_ir))
 
         train_reward_list.append(epi_reward/nb_batch)
+        val_reward_list.append(val_reward)
         test_reward_list.append(test_reward)
-        visualizer.plot_pv(i, np.cumprod(test_pv_vec))
-        visualizer.plot_reward(i, train_reward_list, test_reward_list)
+
+        visualizer.plot_pv(i, np.cumprod(test_pv_vec), mkt_return)
+        visualizer.plot_reward(i, train_reward_list, val_reward_list, test_reward_list)
 
     return pg_agent
 
 
-def rolling_train_and_test(sess, train_df, test_df, batch_size, window_size, learning_rate, pre_train_episode):
+def rolling_train_and_test(sess, train_df, test_df, batch_size, window_size, learning_rate, pre_train_episode, mkt_return):
     """
     만약 이 함수를 수정하려는 경우 train과 test 인덱싱에 매우 주의하여야 한다.
     만약 obs[i]와 fps[i]가 있다면, fps[i]는 i+1 시점의 가격 데이터를 알고 있는 것임.
@@ -96,7 +105,7 @@ def rolling_train_and_test(sess, train_df, test_df, batch_size, window_size, lea
 
         train_reward_list.append(epi_reward / nb_batch)
         test_reward_list.append(test_reward)
-        visualizer.plot_pv(i, np.cumprod(test_pv_vec))
+        visualizer.plot_pv(i, np.cumprod(test_pv_vec), mkt_return)
         visualizer.plot_reward(i, train_reward_list, test_reward_list)
 
     train_obs_len = len(obs)

@@ -8,13 +8,12 @@ asset_name_dict = pd.read_csv('asset_name.csv', index_col=0)
 asset_name_dict = asset_name_dict.to_dict()['name']
 
 class Data_Manager:
-    def __init__(self, db_path, min_date=20160401, max_date=20180525, train_test_split=1.0, validation=False):
+    def __init__(self, db_path, min_date=20160401, max_date=20180525, split_ratio=(0.8, 0.0, 0.2)):
         self._db_path = db_path
         self.asset_list = self.db_asset_list(min_date=min_date)
         self.min_date = min_date
         self.max_date = max_date
-        self.train_test_split = train_test_split
-        self.validation = validation
+        self.split_ratio = split_ratio
 
     def db_asset_list(self, min_date=0):
         """
@@ -61,7 +60,7 @@ class Data_Manager:
 
         return df
 
-    def generate_feature_df(self, chart_df):
+    def generate_feature_df(self, chart_df, window_size):
         feature_df = chart_df
 
         for asset in self.asset_list:
@@ -97,21 +96,9 @@ class Data_Manager:
 
         df = feature_df.sort_index(axis=1)
 
-        if self.train_test_split != 1.0:
-            split_date = df.index[int(len(df.index) * self.train_test_split)]
-            split_date = dt.datetime(split_date.year, split_date.month, split_date.day)
-        else:
-            split_date = df.index[int(len(df.index) * self.train_test_split) - 1]
-            split_date = dt.datetime(split_date.year, split_date.month, split_date.day)
-
-        df_train = df[df.index <= split_date]
-        df_test = df[df.index > split_date]
-        df_validation = []
-        if self.validation:
-            split_date = df_train.index[int(len(df_train.index) * 0.5) - 1]
-            split_date = dt.datetime(split_date.year, split_date.month, split_date.day)
-            df_validation = df_train[df_train.index > split_date]
-            df_train = df_train[df_train.index <= split_date]
-            return df_train, df_validation, df_test
+        df_train = df.iloc[:int(len(df) * self.split_ratio[0])]
+        df_validation = df.iloc[int(len(df) * self.split_ratio[0])-window_size:
+                                int(len(df) * (self.split_ratio[0] + self.split_ratio[1]))]
+        df_test = df.iloc[int(len(df) * (self.split_ratio[0] + self.split_ratio[1])) - window_size:]
 
         return df_train, df_validation, df_test

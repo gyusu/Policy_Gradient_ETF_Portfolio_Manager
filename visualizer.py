@@ -33,13 +33,13 @@ def plot_dfs(dfs: list, df_title: list):
         plt.figure(fig_idx)
         plt.figtext(0.5, 0.93, title, size=16, ha='center')
 
-        plt.subplot(1,len(dfs),1)
+        plt.subplot(1,2,1)
         plt.grid()
         plt.xticks(rotation=50)
         for i, asset_code in enumerate(asset_code_list):
             asset_df = df[asset_code]
             if i == 7:
-                plt.subplot(1, len(dfs), 2)
+                plt.subplot(1, 2, 2)
                 plt.grid()
                 plt.xticks(rotation=50)
 
@@ -50,20 +50,22 @@ def plot_dfs(dfs: list, df_title: list):
 
     plt.show()
 
-def plot_pv(episode, pv):
+def plot_pv(episode, test_pv, mkt):
 
     fig = plt.figure()
-    plt.title("{} episode pv".format(episode))
-    plt.plot(pv)
-
+    plt.title("{} episode portfolio value".format(episode))
+    plt.plot(test_pv, label='test pv')
+    plt.plot(mkt, label='market return')
+    plt.legend()
     # e.g. ./result_plot/01/step01.png
     plt.savefig(os.path.join(savefig_dir, 'episode_pv{:02}.png'.format(episode)))
     plt.close(fig)
 
-def plot_reward(episode, train_reward, test_reward):
+def plot_reward(episode, train_reward, val_reward, test_reward):
     fig = plt.figure()
     plt.title("{} episode reward".format(episode))
     plt.plot(train_reward, label='train')
+    plt.plot(val_reward, label='validation')
     plt.plot(test_reward, label='test')
     plt.legend()
 
