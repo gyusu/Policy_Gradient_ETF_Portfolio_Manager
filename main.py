@@ -24,7 +24,7 @@ USE_TOP_N_AGENT = ENSEMBLE_NUM // 2
 ROLLING_TRAIN_TEST = False
 
 # 학습/ 테스트 data 설정
-dm = Data_Manager('./gaps.db',20151113, 20171231, split_ratio=(0.6, 0.2, 0.2))
+dm = Data_Manager('./gaps.db',20151113, 20180531, split_ratio=(0.6, 0.2, 0.2))
 df = dm.load_db()
 train_df, val_df, test_df = dm.generate_feature_df(df, WINDOW_SIZE)
 print('train: {} ~ {}'.format(train_df.iloc[0].name, train_df.iloc[-1].name))
