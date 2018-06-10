@@ -29,7 +29,7 @@ class Agent:
             print(conv1)
             conv1 = tf.layers.max_pooling2d(conv1, [1, 2], [1, 2])
             print(conv1)
-        conv1 = tf.layers.dropout(conv1, rate=0.5, noise_shape=[self.batch_size, nb_asset, (window_size-3+1)//2, 128], training=self.is_training)
+        conv1 = tf.layers.dropout(conv1, rate=0.3, noise_shape=[self.batch_size, nb_asset, (window_size-3+1)//2, 128], training=self.is_training)
 
         # conv1 = tf.transpose(conv1, [0, 2, 1, 3])
         # print(conv1)
@@ -47,7 +47,7 @@ class Agent:
                                      kernel_initializer=tf.contrib.layers.xavier_initializer(),
                                      activation=tf.nn.relu)
         print(conv2)
-        conv2 = tf.layers.dropout(conv2, rate=0.5, noise_shape=[self.batch_size, nb_asset, 1, 64],training=self.is_training)
+        conv2 = tf.layers.dropout(conv2, rate=0.3, noise_shape=[self.batch_size, nb_asset, 1, 64],training=self.is_training)
 
         with tf.name_scope("Conv3"):
             conv3 = tf.layers.conv2d(conv2, filters=1, kernel_size=[1, 1], strides=[1, 1],
@@ -100,10 +100,11 @@ class Agent:
 
         # self.loss = -self.sharpe_ratio
         # self.reward = self.information_ratio - 0.1 * self.mean_std_action
-        self.reward = self.information_ratio
+        # self.reward = self.information_ratio
+        self.reward = self.mean_log_pv_mkt_diff
         # self.reward = self.sharpe_ratio
-        # self.train_op = tf.train.AdamOptimizer(learning_rate=lr).minimize(-self.reward)
-        self.train_op = tf.train.AdagradOptimizer(learning_rate=lr).minimize(-self.reward)
+        self.train_op = tf.train.AdamOptimizer(learning_rate=lr).minimize(-self.reward)
+        # self.train_op = tf.train.AdagradOptimizer(learning_rate=lr).minimize(-self.reward)
         # self.train_op = tf.train.AdagradDAOptimizer(learning_rate=lr, global_step=self.global_step).minimize(-self.reward)
         # self.train_op = tf.train.A
 
