@@ -8,7 +8,7 @@ ETF 상품 15개의 포트폴리오를 구성하는 프로그램
 
 # TODO (단기적)
 1. ~~loss(critic) 변경 (sharpe ratio or mse between portfolio value gain and optimal) 현재는 단순히 portfolio value gain이용중~~ DONE
-1. 초기값에 따라 policy 수렴이 달라지는 문제 해결 ~~(앙상블 or 모델 구조 변경)~~ -> 네트워크 두 개를 각각 만들고 train 데이터를 양분하여 학습한 뒤 서로 데이터를 바꾸어 validate. 일정 update step 이후에 total reward개선이 없는 모델은 다시 학습
+1. ~~초기값에 따라 policy 수렴이 달라지는 문제 해결 (앙상블 or 모델 구조 변경) -> 네트워크 두 개를 각각 만들고 train 데이터를 양분하여 학습한 뒤 서로 데이터를 바꾸어 validate. 일정 update step 이후에 total reward개선이 없는 모델은 다시 학습~~ 여러 agent 생성 후 validation data에서 reward 높은 top N개의 agent들의 앙상블로 구현하였음
 1. portfolio weight(Action)변화 시각화
 1. ~~rolling train~~ 일단 적용하였으나 rolling train에 다양한 방법이 존재하기때문에, 개선의 여지가 남아있음
 1. ~~모델 간 비교를 위한 메트릭 정하기~~ Information Ratio를 사용
@@ -18,4 +18,4 @@ ETF 상품 15개의 포트폴리오를 구성하는 프로그램
 
 
 # TODO (장기적)
-1. 자연어 처리를 이용한 feature 추가(using fn guide report or sth.)
+1. ~~자연어 처리를 이용한 feature 추가(using fn guide report or sth.)~~ 현실적으로 데이터 부족하여 현재 모델에서는 적용 불가능
