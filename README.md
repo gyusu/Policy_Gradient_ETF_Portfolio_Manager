@@ -18,4 +18,4 @@ ETF 상품 15개의 포트폴리오를 구성하는 프로그램
 
 
 # TODO (장기적)
-1. 자연어 처리를 이용한 feature 추가(using fn guide report or sth.)
+1. ~~자연어 처리를 이용한 feature 추가(using fn guide report or sth.)~~ 현실적으로 데이터 부족하여 현재 모델에서는 적용 불가능
