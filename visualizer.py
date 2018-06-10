@@ -54,11 +54,24 @@ def plot_pv(episode, test_pv, mkt):
 
     fig = plt.figure()
     plt.title("{} episode portfolio value".format(episode))
-    plt.plot(test_pv, label='test pv')
     plt.plot(mkt, label='market return')
+    plt.plot(test_pv, label='test pv')
     plt.legend()
     # e.g. ./result_plot/01/step01.png
     plt.savefig(os.path.join(savefig_dir, 'episode_pv{:02}.png'.format(episode)))
+    plt.close(fig)
+
+def plot_ensemble_pv(agents_pv, ensemble_pv, mkt):
+
+    fig = plt.figure()
+    plt.title("Ensemble of top {} agents".format(len(agents_pv)))
+    plt.plot(mkt, label='market return')
+    plt.plot(ensemble_pv, label='Ensemble pv')
+    for i, agent_pv in enumerate(agents_pv):
+        plt.plot(agent_pv, label='agent {}'.format(i))
+    plt.legend()
+
+    plt.savefig(os.path.join(savefig_dir, 'ensemble_pv.png'))
     plt.close(fig)
 
 def plot_reward(episode, train_reward, val_reward, test_reward):

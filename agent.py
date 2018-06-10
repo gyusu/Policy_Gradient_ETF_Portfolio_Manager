@@ -3,7 +3,7 @@ import tensorflow as tf
 
 class Agent:
 
-    def __init__(self, sess, obs_shape, lr=0.000005):
+    def __init__(self, name, sess, obs_shape, lr=0.000005):
         """
         :param sess: tf.Session
         :param obs_shape: [1, nb_asset, window_size, nb_feature] e.g. [1, 15, 30, 5]
@@ -13,6 +13,7 @@ class Agent:
         input_shape = [None, nb_asset, window_size, nb_feature]
         action_shape = [None, nb_asset]
 
+        self.name = name
         self.sess = sess
         self.is_training = tf.placeholder(tf.bool)
         self.batch_size = tf.placeholder(tf.int32)
@@ -99,8 +100,8 @@ class Agent:
 
         # self.loss = -self.sharpe_ratio
         # self.reward = self.information_ratio - 0.1 * self.mean_std_action
-        # self.reward = self.information_ratio
-        self.reward = self.sharpe_ratio
+        self.reward = self.information_ratio
+        # self.reward = self.sharpe_ratio
         # self.train_op = tf.train.AdamOptimizer(learning_rate=lr).minimize(-self.reward)
         self.train_op = tf.train.AdagradOptimizer(learning_rate=lr).minimize(-self.reward)
         # self.train_op = tf.train.AdagradDAOptimizer(learning_rate=lr, global_step=self.global_step).minimize(-self.reward)

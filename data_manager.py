@@ -76,7 +76,7 @@ class Data_Manager:
                 (feature_df.loc[:, (asset, 'high')].values - feature_df.loc[:, (asset, 'close')].values) / \
                 feature_df.loc[:, (asset, 'close')].values
 
-            # high_close_ratio : (low - close) / close
+            # low_close_ratio : (low - close) / close
             feature_df.loc[:, (asset, 'low_close_ratio')] = \
                 (feature_df.loc[:, (asset, 'low')].values - feature_df.loc[:, (asset, 'close')].values) / \
                 feature_df.loc[:, (asset, 'close')].values

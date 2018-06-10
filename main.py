@@ -19,6 +19,7 @@ EPISODE = 10
 LEARNING_RATE = 0.001
 VALIDATION = 0 # train data에서 이 비율만큼 validation data로 사용
 ENSEMBLE_NUM = 10
+USE_TOP_N_AGENT = ENSEMBLE_NUM // 2
 
 ROLLING_TRAIN_TEST = False
 
@@ -46,11 +47,11 @@ print('random agent PV: {}'.format(pv))
 # Market Average Return
 obs = test_env.reset()
 done = False
-mkt_return = []
+mkt_pv_vec = []
 action = np.array([1.0]*len(test_env.action_sample())) / len(test_env.action_sample())
 while not done:
     observation, pv, done, future_price = test_env.step(action)
-    mkt_return.append(pv)
+    mkt_pv_vec.append(pv)
 print('Market Average Return: {}'.format(pv))
 
 
@@ -66,11 +67,11 @@ with tf.Session() as sess:
         agent_list = []
         for i in range(ENSEMBLE_NUM):
             # agent 생성. 이때 train_env.obs_shape 는 test_env.obs_shape 와 같아야 한다.
-            pg_agent = Agent(sess, train_env.obs_shape, lr=LEARNING_RATE)
+            pg_agent = Agent(i, sess, train_env.obs_shape, lr=LEARNING_RATE)
             agent_list.append(pg_agent)
         sess.run(tf.global_variables_initializer())
 
         for pg_agent in agent_list:
-            trainer.train_and_test(pg_agent, train_env, val_env, test_env, BATCH_SIZE, EPISODE, mkt_return)
+            trainer.train_and_test(pg_agent, train_env, val_env, test_env, BATCH_SIZE, EPISODE, mkt_pv_vec)
 
-        ensembler.ensemble_test(agent_list, test_env)
+        ensembler.ensemble_test(agent_list, val_env, test_env, USE_TOP_N_AGENT, mkt_pv_vec)
