@@ -101,5 +101,7 @@ Train : Validation : Test = 0.6 : 0.2 : 0.2
 
 ## Reference
 [1] Z Jiang et al., A Deep Reinforcement Learning Framework for the Financial Portfolio Management Problem, 2017
+
 [2] Y Deng et al., Deep Direct Reinforcement Learning for Financial Signal Representation and Trading, 2017
+
 [3] 김문권, 파이썬과 케라스를 이용한 딥러닝/강화학습 주식투자, 2018
