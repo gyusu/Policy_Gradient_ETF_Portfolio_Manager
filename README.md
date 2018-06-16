@@ -48,7 +48,7 @@ Agent가 Action 취한다고 환경(가격정보)이 변하는 것이 아니기 
 ![pg_diagram2](./img/pg_diagram2.PNG)
 
 ## Agent 뇌 구조
-![net](./img/net.png)
+![net](./img/net.PNG)
 기본적으로 구현한 뇌 구조는 [1]논문 구조와 매우매우 유사한 구조임
 + Convolution Layer 사이에 Dropout과 Noise 적용
 + 모든 Activation function은 ReLu
