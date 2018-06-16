@@ -36,16 +36,16 @@ ETF(Exchange-Traded Fund) 15개 종목
 .db 파일 내용 쉽게 확인하려면 https://sqlitebrowser.org 받으면 된다
 
 ### 전처리
-![preprocess](./img/preprocess.png)
+![preprocess](./img/preprocess.PNG)
 전처리 방식은 [3]에서 한 방식과 동일
 ## 강화학습 구조
 ### 개념적 구조
-![pg_diagram1](./img/pg_diagram1.png)
+![pg_diagram1](./img/pg_diagram1.PNG)
 ### 구현된 구조
 사실 위 그림에서와 같은 Environment와 Agent간의 상호작용이 불필요함
 Agent가 Action 취한다고 환경(가격정보)이 변하는 것이 아니기 때문 (no market power 가정)
 그래서 아래 그림과 같이 Env를 통째로(..mini batch로 쪼개서 넣습니다) 넣어줘도 됨
-![pg_diagram2](./img/pg_diagram2.png)
+![pg_diagram2](./img/pg_diagram2.PNG)
 
 ## Agent 뇌 구조
 ![net](./img/net.png)
@@ -57,7 +57,7 @@ Agent가 Action 취한다고 환경(가격정보)이 변하는 것이 아니기 
 학습한다는 의미를 내포함) 코드 수정에 따라 30 아닐 수도 있음
 
 ## Reward 정의
-![reward](./img/reward.png)
+![reward](./img/reward.PNG)
 참고로 Sharpe ratio, Information ratio도 구현되어있긴 하다. [1]에서는 Sharpe ratio 사용했다.
 ## 앙상블
 #### 앙상블 왜 필요?
@@ -67,7 +67,7 @@ Random Seed 때문
 + 수익률 좋은 포트폴리오 구성법은 무수히 많기 때문에, local maxima 정책이 매우 다양할 것이라고 생각함.
 + 특히 train data에 대해 overfitting하게 정책(weight, bias)을 업데이트 하는 유인이 강함.
 
-![ensemble](./img/ensemble.png)
+![ensemble](./img/ensemble.PNG)
 
 ## 테스트
 ```
@@ -81,13 +81,13 @@ Train : Validation : Test = 0.6 : 0.2 : 0.2
 3. Market 수익률은 투자 대상종목(13개)를 동일한 비중으로 보유했을 때의 수익률임
 
 #### Train data
-![train_data](./img/train_data.png)
+![train_data](./img/train_data.PNG)
 #### Validation data
-![val_data](./img/val_data.png)
+![val_data](./img/val_data.PNG)
 #### Test data
-![test_data](./img/test_data.png)
+![test_data](./img/test_data.PNG)
 #### 테스트 결과
-![result](./img/result.png)
+![result](./img/result.PNG)
 
 ## 혼잣말
 질문 : 모든 기간에 대해 이렇게 좋습니까?
